@@ -1,3 +1,7 @@
+window.speechSynthesis.onvoiceschanged = () => {
+  window.speechSynthesis.getVoices();
+};
+
 let chatHistory = [];
 
 function displayMessage(sender, text) {
@@ -38,10 +42,36 @@ function newChat() {
 }
 
 function speak(text) {
+  // Stop previous speech if speaking
+  window.speechSynthesis.cancel();
+
   const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = "en-IN";
-  window.speechSynthesis.speak(speech);
+
+  // Get available voices
+  const voices = window.speechSynthesis.getVoices();
+
+  // Try to select natural English voice
+  const preferredVoice =
+    voices.find(v => v.name.includes("Google")) ||
+    voices.find(v => v.name.includes("Natural")) ||
+    voices.find(v => v.lang === "en-IN") ||
+    voices[0];
+
+  if (preferredVoice) {
+    speech.voice = preferredVoice;
+  }
+
+  // Make it sound more human
+  speech.rate = 1;        // Speed (0.8 - 1.1 best)
+  speech.pitch = 1;       // Natural tone
+  speech.volume = 1;
+
+  // Small delay for smoother speech
+  setTimeout(() => {
+    window.speechSynthesis.speak(speech);
+  }, 200);
 }
+
 
 /* 🎤 Speech to Text */
 
