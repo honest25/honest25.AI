@@ -5,9 +5,6 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
-
   const models = [
     "openai/gpt-3.5-turbo",
     "mistralai/mistral-7b-instruct",
@@ -24,11 +21,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         messages
-      }),
-      signal: controller.signal
+      })
     });
 
-    if (!response.ok) throw new Error("Model failed");
+    if (!response.ok) throw new Error("Failed");
 
     const data = await response.json();
     return data.choices[0].message.content;
@@ -36,9 +32,8 @@ export default async function handler(req, res) {
 
   try {
     const result = await Promise.any(models.map(m => callModel(m)));
-    clearTimeout(timeout);
-    res.status(200).json({ reply: result });
+    return res.status(200).json({ reply: result });
   } catch (error) {
-    res.status(500).json({ reply: "All models failed." });
+    return res.status(500).json({ reply: "All models failed." });
   }
 }
